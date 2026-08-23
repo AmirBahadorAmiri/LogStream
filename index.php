@@ -91,6 +91,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
             cursor: pointer;
             border-radius: .25rem;
         }
+        .auth-card .form-control {
+            direction: rtl;
+            text-align: right;
+        }
+        .auth-card .form-floating > label {
+            right: 0;
+            left: auto;
+            text-align: right;
+        }
     </style>
 </head>
 <body>

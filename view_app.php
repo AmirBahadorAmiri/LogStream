@@ -214,7 +214,7 @@ elseif ($current_view === 'analytics') {
                 <table class="table table-striped table-hover table-bordered table-sm align-middle">
                     <thead class="table-dark">
                     <tr>
-                        <th>UUID لاگ</th><th>کلاینت</th><th>تگ</th><th>پیام</th><th>IP</th><th>زمان</th><th>عملیات</th>
+                        <th>UUID</th><th>کلاینت</th><th>تگ</th><th>پیام</th><th>IP</th><th>زمان</th><th>عملیات</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -222,7 +222,17 @@ elseif ($current_view === 'analytics') {
                         <tr>
                             <td><small class="text-monospace"><?= escape($log['log_uuid']) ?></small></td>
                             <td><?= escape($log['client_identifier']) ?></td>
-                            <td><span class="badge bg-secondary"><?= escape($log['tag']) ?></span></td>
+                            <td><span class="badge bg-<?php
+                                    if ( $log['tag'] == "info" ) echo 'info';
+                                    else if ( $log['tag'] == "debug" ) echo 'success';
+                                    else if ( $log['tag'] == "notice" ) echo 'warning';
+                                    else if ( $log['tag'] == "warning" ) echo 'warning';
+                                    else if ( $log['tag'] == "alert" ) echo 'danger';
+                                    else if ( $log['tag'] == "error" ) echo 'danger';
+                                    else if ( $log['tag'] == "critical" ) echo 'dark';
+                                    else if ( $log['tag'] == "emergency" ) echo 'dark';
+                                    else echo 'secondary';
+                                ?>"><?= escape($log['tag']) ?></span></td>
                             <td class="log-message"><?= nl2br(escape($log['message'])) ?></td>
                             <td><?= escape($log['ip_address']) ?></td>
                             <td><small><?= $log['created_at'] ?></small></td>
