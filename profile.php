@@ -59,15 +59,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="<?= language() ?>" dir="<?= pageDirection() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پروفایل کاربری - LogStream</title>
+    <title><?= t('profile') ?> - LogStream</title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <script src="js/theme.js"></script>
 </head>
 <body class="bg-light">
 
@@ -80,16 +81,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php"><i class="fas fa-arrow-left"></i> بازگشت به داشبورد</a>
+                    <a class="nav-link" href="dashboard.php"><i class="fas fa-arrow-left"></i> <?= t('back_dashboard') ?></a>
                 </li>
             </ul>
+            <?= themeSwitcher() ?>
+            <?= languageSwitcher() ?>
         </div>
     </div>
 </nav>
 
 <main class="container" style="padding-top: 80px;">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2"><i class="fas fa-user-edit"></i> پروفایل کاربری: <?= escape($user['username']) ?></h1>
+        <h1 class="h2"><i class="fas fa-user-edit"></i> <?= t('profile') ?>: <?= escape($user['username']) ?></h1>
     </div>
 
     <?php if ($error): ?>
@@ -109,14 +112,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Update Username -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0"><i class="fas fa-user"></i> تغییر نام کاربری</h5></div>
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-user"></i> <?= t('change_username') ?></h5></div>
                 <div class="card-body">
                     <form method="post">
                         <div class="mb-3">
-                            <label for="username" class="form-label">نام کاربری جدید</label>
+                            <label for="username" class="form-label"><?= t('new_username') ?></label>
                             <input type="text" class="form-control" id="username" name="username" value="<?= escape($user['username']) ?>" required>
                         </div>
-                        <button type="submit" name="update_username" class="btn btn-primary"><i class="fas fa-save"></i> به‌روزرسانی</button>
+                        <button type="submit" name="update_username" class="btn btn-primary"><i class="fas fa-save"></i> <?= t('update') ?></button>
                     </form>
                 </div>
             </div>
@@ -125,14 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Update Email -->
         <div class="col-lg-6 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0"><i class="fas fa-envelope"></i> تغییر ایمیل</h5></div>
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-envelope"></i> <?= t('change_email') ?></h5></div>
                 <div class="card-body">
                     <form method="post">
                         <div class="mb-3">
-                            <label for="email" class="form-label">ایمیل جدید</label>
-                            <input type="email" class="form-control" id="email" name="email" value="<?= escape($user['email']) ?>" placeholder="ایمیل جدید (اختیاری)">
+                            <label for="email" class="form-label"><?= t('new_email') ?></label>
+                            <input type="email" class="form-control" id="email" name="email" value="<?= escape($user['email']) ?>" placeholder="<?= t('email_optional') ?>">
                         </div>
-                        <button type="submit" name="update_email" class="btn btn-primary"><i class="fas fa-save"></i> به‌روزرسانی</button>
+                        <button type="submit" name="update_email" class="btn btn-primary"><i class="fas fa-save"></i> <?= t('update') ?></button>
                     </form>
                 </div>
             </div>
@@ -143,22 +146,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="row justify-content-center">
         <div class="col-lg-8 mb-4">
             <div class="card shadow-sm">
-                <div class="card-header"><h5 class="mb-0"><i class="fas fa-key"></i> تغییر رمز عبور</h5></div>
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-key"></i> <?= t('change_password') ?></h5></div>
                 <div class="card-body">
                     <form method="post">
                         <div class="mb-3">
-                            <label for="old_password" class="form-label">رمز عبور فعلی</label>
+                            <label for="old_password" class="form-label"><?= t('current_password') ?></label>
                             <input type="password" class="form-control" id="old_password" name="old_password" required>
                         </div>
                         <div class="mb-3">
-                            <label for="new_password" class="form-label">رمز عبور جدید</label>
-                            <input type="password" class="form-control" id="new_password" name="new_password" placeholder="حداقل ۶ کاراکتر" required>
+                            <label for="new_password" class="form-label"><?= t('new_password') ?></label>
+                            <input type="password" class="form-control" id="new_password" name="new_password" placeholder="<?= language() === 'fa' ? 'حداقل ۶ کاراکتر' : 'At least 6 characters' ?>" required>
                         </div>
                         <div class="mb-3">
-                            <label for="confirm_password" class="form-label">تکرار رمز عبور جدید</label>
+                            <label for="confirm_password" class="form-label"><?= t('confirm_password') ?></label>
                             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                         </div>
-                        <button type="submit" name="update_password" class="btn btn-warning"><i class="fas fa-sync-alt"></i> تغییر رمز</button>
+                        <button type="submit" name="update_password" class="btn btn-warning"><i class="fas fa-sync-alt"></i> <?= t('change_password') ?></button>
                     </form>
                 </div>
             </div>

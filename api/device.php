@@ -10,16 +10,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // --- دریافت و اعتبارسنجی ورودی ---
-$app_uuid = $_POST['app_uuid'] ?? '';
-$client_identifier = $_POST['client_identifier'] ?? '';
-$os_type = $_POST['os_type'] ?? null;
-$os_version = $_POST['os_version'] ?? null;
-$device_model = $_POST['device_model'] ?? null;
-$user_agent = $_SERVER['HTTP_USER_AGENT'] ?? null; // دریافت خودکار User-Agent
+$app_uuid = isset($_POST['app_uuid']) ? $_POST['app_uuid'] : '';
+$client_identifier = isset($_POST['client_identifier']) ? $_POST['client_identifier'] : '';
+$os_type = isset($_POST['os_type']) ? $_POST['os_type'] : '';
+$os_version = isset($_POST['os_version']) ? $_POST['os_version'] : '';
+$device_model = isset($_POST['device_model']) ? $_POST['device_model'] : '';
+$user_agent = isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AGENT'] : ''; // دریافت خودکار User-Agent
 
-if (empty($app_uuid) || empty($client_identifier)) {
+if (empty($app_uuid) || empty($client_identifier) || empty($os_type) || empty($os_version) || empty($device_model)) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'app_uuid and client_identifier are required']);
+    echo json_encode(['status' => 'error', 'message' => 'به مستندات رسمی مراجعه فرمایید']);
     exit;
 }
 
@@ -50,5 +50,5 @@ $sql = "
 $stmt = $pdo->prepare($sql);
 $stmt->execute([$app_id, $client_identifier, $os_type, $os_version, $device_model, $user_agent]);
 
-echo json_encode(['status' => 'success', 'message' => 'Device information updated successfully']);
+echo json_encode(['status' => 'success', 'message' => 'Device information saved successfully']);
 ?>

@@ -40,23 +40,24 @@ if (isset($_GET['edit'])) {
         if (!empty($new_name)) {
             $stmt = $pdo->prepare("UPDATE apps SET app_name = ? WHERE id = ?");
             $stmt->execute([$new_name, $app_id]);
-            $success = 'نام اپلیکیشن با موفقیت به‌روز شد.';
+            $success = t('updated_successfully');
             $app['app_name'] = $new_name; // Update the name for display
         } else {
-            $error = 'نام اپلیکیشن نمی‌تواند خالی باشد.';
+            $error = t('name_required');
         }
     }
     ?>
     <!DOCTYPE html>
-    <html lang="fa" dir="rtl">
+    <html lang="<?= language() ?>" dir="<?= pageDirection() ?>">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ویرایش اپلیکیشن - LogStream</title>
+        <title><?= t('edit_app') ?> - LogStream</title>
         <link rel="stylesheet" href="css/bootstrap.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
         <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
-        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/style.css?v=3">
+        <script src="js/theme.js"></script>
     </head>
     <body class="bg-light">
 
@@ -69,9 +70,11 @@ if (isset($_GET['edit'])) {
             <div class="collapse navbar-collapse" id="mainNav">
                 <ul class="navbar-nav ms-auto">
                      <li class="nav-item">
-                        <a class="nav-link" href="dashboard.php"><i class="fas fa-arrow-left"></i> بازگشت به داشبورد</a>
+                        <a class="nav-link" href="dashboard.php"><i class="fas fa-arrow-left"></i> <?= t('back_dashboard') ?></a>
                     </li>
                 </ul>
+                <?= themeSwitcher() ?>
+                <?= languageSwitcher() ?>
             </div>
         </div>
     </nav>
@@ -81,7 +84,7 @@ if (isset($_GET['edit'])) {
             <div class="col-lg-6">
                 <div class="card shadow-sm">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-edit"></i> ویرایش اپلیکیشن: <?= escape($app['app_name']) ?></h5>
+                        <h5 class="mb-0"><i class="fas fa-edit"></i> <?= t('edit_app') ?>: <?= escape($app['app_name']) ?></h5>
                     </div>
                     <div class="card-body">
                         <?php if ($error): ?>
@@ -93,12 +96,12 @@ if (isset($_GET['edit'])) {
 
                         <form method="post">
                             <div class="mb-3">
-                                <label for="app_name" class="form-label">نام جدید اپلیکیشن</label>
+                                <label for="app_name" class="form-label"><?= t('new_app_name') ?></label>
                                 <input type="text" class="form-control" id="app_name" name="app_name" value="<?= escape($app['app_name']) ?>" required>
                             </div>
                             <div class="d-flex justify-content-between">
-                                <button type="submit" name="update_app" class="btn btn-primary"><i class="fas fa-save"></i> به‌روزرسانی</button>
-                                <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-times"></i> انصراف</a>
+                                <button type="submit" name="update_app" class="btn btn-primary"><i class="fas fa-save"></i> <?= t('update') ?></button>
+                                <a href="dashboard.php" class="btn btn-secondary"><i class="fas fa-times"></i> <?= t('cancel') ?></a>
                             </div>
                         </form>
                     </div>

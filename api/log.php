@@ -13,10 +13,11 @@ $app_uuid = isset($_POST['app_uuid']) ? $_POST['app_uuid'] : '';
 $tag = isset($_POST['tag']) ? $_POST['tag'] : 'general';
 $message = isset($_POST['message']) ? $_POST['message'] : '';
 $client_identifier = isset($_POST['client_identifier']) ? $_POST['client_identifier'] : '';
+$ip = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '0.0.0.0';
 
-if (empty($app_uuid) || empty($message)) {
+if (empty($app_uuid) || empty($message) || empty($client_identifier)) {
     http_response_code(400);
-    echo json_encode(['status' => 'error', 'message' => 'app_uuid و message الزامی هستند']);
+    echo json_encode(['status' => 'error', 'message' => 'به مستندات رسمی مراجعه فرمایید']);
     exit;
 }
 
@@ -30,7 +31,6 @@ if (!$app) {
 }
 
 $log_uuid = generateUUID();
-$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
 $stmt = $pdo->prepare("INSERT INTO logs (app_id, log_uuid, client_identifier, tag, message, ip_address) VALUES (?, ?, ?, ?, ?, ?)");
 $stmt->execute([$app['id'], $log_uuid, $client_identifier, $tag, $message, $ip]);

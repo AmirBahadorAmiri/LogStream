@@ -15,6 +15,9 @@ if (!$app) {
 }
 
 $current_view = $_GET['view'] ?? 'logs';
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$base_path = rtrim(str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'])), '/');
+$api_base_url = $scheme . '://' . $_SERVER['HTTP_HOST'] . $base_path;
 $app_id = $app['id'];
 $page = (int)($_GET['page'] ?? 1);
 $filter_params = [];
@@ -104,15 +107,16 @@ elseif ($current_view === 'analytics') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="<?= language() ?>" dir="<?= pageDirection() ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مدیریت اپ: <?= escape($app['app_name']) ?></title>
+    <title><?= t('manage_app') ?>: <?= escape($app['app_name']) ?></title>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=3">
+    <script src="js/theme.js"></script>
     <style>
         body {
             padding-top: 70px; /* To offset for fixed navbar */
@@ -121,13 +125,45 @@ elseif ($current_view === 'analytics') {
             display: block;
             margin-top: 0;
         }
+        .app-uuid {
+            direction: ltr;
+            font-size: .8rem;
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .app-uuid-container {
+            min-width: 0;
+            margin: .5rem 0;
+        }
+        .app-uuid-container code {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .navbar-actions {
+            gap: 0;
+        }
+        @media (min-width: 992px) {
+            .app-uuid-container {
+                margin: 0 1rem;
+            }
+            .navbar-actions {
+                margin-inline-start: auto;
+            }
+        }
+        .api-code {
+            direction: ltr;
+            text-align: left;
+            white-space: pre-wrap;
+            font-size: .8rem;
+        }
     </style>
 </head>
 <body class="bg-light">
 
 <nav class="navbar navbar-expand-lg bg-light fixed-top shadow-sm">
     <div class="container-fluid">
-        <a class="navbar-brand" href="#"><i class="fas fa-cogs"></i> مدیریت اپ: <?= escape($app['app_name']) ?></a>
+        <a class="navbar-brand" href="#"><i class="fas fa-cogs"></i> <?= t('manage_app') ?>: <?= escape($app['app_name']) ?></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -137,37 +173,51 @@ elseif ($current_view === 'analytics') {
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <?php
                         if ($current_view == "logs")
-                            echo "لاگ ها";
+                            echo t('logs');
                         elseif ($current_view == "devices")
-                            echo "دستگاه‌ها";
+                            echo t('devices');
                         elseif ($current_view == "analytics")
-                            echo "آمار";
+                            echo t('analytics');
+                        elseif ($current_view == "documentation")
+                            echo t('api_docs');
                         ?>
                     </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <ul class="dropdown-menu text-end" aria-labelledby="navbarDropdown">
                         <li>
                             <a class="dropdown-item <?= $current_view === 'logs' ? 'active' : '' ?>" href="?app_uuid=<?= escape($app_uuid) ?>&view=logs">
-                                لاگ ها
+                                <?= t('logs') ?>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item <?= $current_view === 'devices' ? 'active' : '' ?>" href="?app_uuid=<?= escape($app_uuid) ?>&view=devices">
-                                دستگاه‌ها
+                                <?= t('devices') ?>
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item <?= $current_view === 'analytics' ? 'active' : '' ?>" href="?app_uuid=<?= escape($app_uuid) ?>&view=analytics">
-                                آمار
+                                <?= t('analytics') ?>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item <?= $current_view === 'documentation' ? 'active' : '' ?>" href="?app_uuid=<?= escape($app_uuid) ?>&view=documentation">
+                                <?= t('api_docs') ?>
                             </a>
                         </li>
                     </ul>
                 </li>
             </ul>
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="dashboard.php"><i class="fas fa-arrow-left"></i> بازگشت به داشبورد</a>
-                </li>
-            </ul>
+            <div class="app-uuid-container navbar-text d-flex align-items-center gap-2">
+                <button type="button" id="copyAppUuid" class="btn btn-sm btn-outline-secondary" aria-label="<?= t('copy_uuid') ?>" title="<?= t('copy_uuid') ?>">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <code id="appUuid" class="app-uuid text-dark"><?= escape($app_uuid) ?></code>
+                <span class="text-muted small" dir="ltr"><?= t('application_uuid') ?>:</span>
+            </div>
+            <div class="navbar-actions d-flex flex-column flex-lg-row align-items-lg-center">
+                <a class="nav-link me-2 ms-2" href="dashboard.php"><i class="fas fa-arrow-left"></i> <?= t('back_dashboard') ?></a>
+                <?= themeSwitcher() ?>
+                <?= languageSwitcher() ?>
+            </div>
         </div>
     </div>
 </nav>
@@ -176,9 +226,10 @@ elseif ($current_view === 'analytics') {
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
             <?php
-            if ($current_view === 'logs') echo '<i class="fas fa-clipboard-list"></i> لاگ‌ها';
-            elseif ($current_view === 'devices') echo '<i class="fas fa-mobile-alt"></i> دستگاه‌های متصل';
-            elseif ($current_view === 'analytics') echo '<i class="fas fa-chart-pie"></i> آمار دستگاه‌ها';
+            if ($current_view === 'logs') echo '<i class="fas fa-clipboard-list"></i> ' . t('logs');
+            elseif ($current_view === 'devices') echo '<i class="fas fa-mobile-alt"></i> ' . t('devices');
+            elseif ($current_view === 'analytics') echo '<i class="fas fa-chart-pie"></i> ' . t('analytics');
+            elseif ($current_view === 'documentation') echo '<i class="fas fa-book"></i> ' . t('api_docs');
             ?>
         </h1>
     </div>
@@ -186,21 +237,21 @@ elseif ($current_view === 'analytics') {
     <?php if ($current_view === 'logs'): ?>
         <div class="card shadow-sm mb-4">
             <div class="card-header">
-                <h5 class="mb-0"><i class="fas fa-filter"></i> فیلتر کردن لاگ‌ها</h5>
+                <h5 class="mb-0"><i class="fas fa-filter"></i> <?= t('filter_logs') ?></h5>
             </div>
             <div class="card-body">
                 <form method="get" class="row g-3 align-items-end">
                     <input type="hidden" name="app_uuid" value="<?= escape($app_uuid) ?>">
                     <input type="hidden" name="view" value="logs">
-                    <div class="col-md-4"><input type="text" name="tag" class="form-control" placeholder="تگ" value="<?= escape($tag ?? '') ?>"></div>
-                    <div class="col-md-4"><input type="text" name="message" class="form-control" placeholder="متن پیام" value="<?= escape($message ?? '') ?>"></div>
-                    <div class="col-md-4"><input type="text" name="client_identifier" class="form-control" placeholder="شناسه کلاینت" value="<?= escape($client ?? '') ?>"></div>
-                    <div class="col-md-4"><input type="text" name="log_uuid" class="form-control" placeholder="UUID لاگ" value="<?= escape($log_uuid ?? '') ?>"></div>
-                    <div class="col-md-2"><input type="date" name="from" class="form-control" title="از تاریخ" value="<?= escape($from ?? '') ?>"></div>
-                    <div class="col-md-2"><input type="date" name="to" class="form-control" title="تا تاریخ" value="<?= escape($to ?? '') ?>"></div>
+                    <div class="col-md-4"><input type="text" name="tag" class="form-control" placeholder="<?= t('tag') ?>" value="<?= escape($tag ?? '') ?>"></div>
+                    <div class="col-md-4"><input type="text" name="message" class="form-control" placeholder="<?= t('message') ?>" value="<?= escape($message ?? '') ?>"></div>
+                    <div class="col-md-4"><input type="text" name="client_identifier" class="form-control" placeholder="<?= t('client') ?>" value="<?= escape($client ?? '') ?>"></div>
+                    <div class="col-md-4"><input type="text" name="log_uuid" class="form-control" placeholder="UUID <?= t('logs') ?>" value="<?= escape($log_uuid ?? '') ?>"></div>
+                    <div class="col-md-2"><input type="date" name="from" class="form-control" title="<?= t('from_date') ?>" value="<?= escape($from ?? '') ?>"></div>
+                    <div class="col-md-2"><input type="date" name="to" class="form-control" title="<?= t('to_date') ?>" value="<?= escape($to ?? '') ?>"></div>
                     <div class="col-md-4 d-flex">
-                        <button type="submit" class="btn btn-primary me-2"><i class="fas fa-search"></i> فیلتر</button>
-                        <a style="margin-right: 8px" href="view_app.php?app_uuid=<?= escape($app_uuid) ?>&view=logs" class="btn btn-secondary"><i class="fas fa-undo"></i> پاک کردن</a>
+                        <button type="submit" class="btn btn-primary me-2"><i class="fas fa-search"></i> <?= t('filter') ?></button>
+                        <a style="margin-right: 8px" href="view_app.php?app_uuid=<?= escape($app_uuid) ?>&view=logs" class="btn btn-secondary"><i class="fas fa-undo"></i> <?= t('clear') ?></a>
                     </div>
                 </form>
             </div>
@@ -208,7 +259,7 @@ elseif ($current_view === 'analytics') {
 
         <div class="table-responsive">
             <?php if (empty($logs)): ?>
-                <div class="alert alert-info text-center"><i class="fas fa-info-circle"></i> هیچ لاگی یافت نشد.</div>
+                <div class="alert alert-info text-center"><i class="fas fa-info-circle"></i> <?= t('no_logs') ?></div>
             <?php else: ?>
                 <p class="text-muted">نمایش <?= count($logs) ?> از <?= $total ?> لاگ</p>
                 <table class="table table-striped table-hover table-bordered table-sm align-middle">
@@ -275,6 +326,98 @@ elseif ($current_view === 'analytics') {
             <?php endif; ?>
         </div>
 
+    <?php elseif ($current_view === 'documentation'): ?>
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            درخواست‌ها باید با روش <code dir="ltr">POST</code> و فرمت <code dir="ltr">application/x-www-form-urlencoded</code> ارسال شوند.
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><i class="fas fa-link"></i> آدرس پایه</div>
+            <div class="card-body">
+                <code class="api-code d-block"><?= escape($api_base_url) ?></code>
+                <small class="text-muted">برای هر درخواست، UUID همین اپ را در پارامتر <code>app_uuid</code> ارسال کنید.</small>
+            </div>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-lg-6">
+                <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-clipboard-list"></i> ثبت لاگ</span>
+                <span class="badge bg-primary">POST</span>
+            </div>
+            <div class="card-body p-3">
+                <p class="mb-2"><code class="api-code d-inline-block"><?= escape($api_base_url) ?>/api/log.php</code></p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light"><tr><th>پارامتر</th><th>الزامی</th><th>توضیح</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>app_uuid</code></td><td>بله</td><td>UUID اپلیکیشن</td></tr>
+                            <tr><td><code>message</code></td><td>بله</td><td>متن لاگ</td></tr>
+                            <tr><td><code>client_identifier</code></td><td>بله</td><td>شناسه یکتای کلاینت یا کاربر</td></tr>
+                            <tr><td><code>tag</code></td><td>خیر</td><td>برچسب لاگ؛ مقدار پیش‌فرض <code>general</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mb-1 fw-bold">نمونه درخواست cURL</p>
+                <pre class="api-code bg-dark text-light rounded p-2 mb-2"><code>curl -X POST "<?= escape($api_base_url) ?>/api/log.php" \
+  -d "app_uuid=<?= escape($app_uuid) ?>" \
+  -d "message=عملیات با موفقیت انجام شد" \
+  -d "tag=info" \
+  -d "client_identifier=user-123"</code></pre>
+                <p class="mb-1 fw-bold">پاسخ موفق</p>
+                <pre class="api-code bg-light border rounded p-2 mb-0"><code>{"status":"success","log_uuid":"شناسه-لاگ"}</code></pre>
+            </div>
+        </div>
+            </div>
+
+            <div class="col-lg-6">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-mobile-alt"></i> ثبت یا به‌روزرسانی دستگاه</span>
+                <span class="badge bg-primary">POST</span>
+            </div>
+            <div class="card-body p-3">
+                <p class="mb-2"><code class="api-code d-inline-block"><?= escape($api_base_url) ?>/api/device.php</code></p>
+                <div class="table-responsive mb-3">
+                    <table class="table table-sm table-bordered mb-0">
+                        <thead class="table-light"><tr><th>پارامتر</th><th>الزامی</th><th>توضیح</th></tr></thead>
+                        <tbody>
+                            <tr><td><code>app_uuid</code></td><td>بله</td><td>UUID اپلیکیشن</td></tr>
+                            <tr><td><code>client_identifier</code></td><td>بله</td><td>شناسه یکتای دستگاه/کلاینت</td></tr>
+                            <tr><td><code>os_type</code></td><td>بله</td><td>نوع سیستم‌عامل، مانند <code>Android</code></td></tr>
+                            <tr><td><code>os_version</code></td><td>بله</td><td>نسخه سیستم‌عامل</td></tr>
+                            <tr><td><code>device_model</code></td><td>بله</td><td>مدل دستگاه</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <p class="mb-1 fw-bold">نمونه درخواست cURL</p>
+                <pre class="api-code bg-dark text-light rounded p-2 mb-0"><code>curl -X POST "<?= escape($api_base_url) ?>/api/device.php" \
+  -d "app_uuid=<?= escape($app_uuid) ?>" \
+  -d "client_identifier=device-001" \
+  -d "os_type=Android" \
+  -d "os_version=14" \
+  -d "device_model=Pixel 8"</code></pre>
+                <p class="mt-2 fw-bold">پاسخ موفق</p>
+                <pre class="api-code bg-light border rounded p-2 mb-0"><code>{"status":"success","message":"Device information saved successfully"}</code></pre>
+            </div>
+        </div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><i class="fas fa-circle-exclamation"></i> پاسخ‌ها و خطاها</div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li><code>200</code>: درخواست با موفقیت انجام شد.</li>
+                    <li><code>400</code>: پارامترهای اجباری ارسال نشده‌اند.</li>
+                    <li><code>404</code>: مقدار <code>app_uuid</code> معتبر نیست.</li>
+                    <li><code>405</code>: روش درخواست باید <code>POST</code> باشد.</li>
+                </ul>
+            </div>
+        </div>
+
     <?php elseif ($current_view === 'analytics'): ?>
         <div class="row">
             <div class="col-lg-6 mb-4">
@@ -315,10 +458,55 @@ elseif ($current_view === 'analytics') {
 </main>
 
 <script src="js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById('copyAppUuid').addEventListener('click', async function () {
+        const button = this;
+        const appUuid = document.getElementById('appUuid').textContent.trim();
+
+        try {
+            if (navigator.clipboard) {
+                await navigator.clipboard.writeText(appUuid);
+            } else {
+                const input = document.createElement('input');
+                input.value = appUuid;
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                input.remove();
+            }
+
+            button.innerHTML = '<i class="fas fa-check"></i>';
+            button.classList.replace('btn-outline-secondary', 'btn-success');
+            button.title = 'کپی شد';
+            setTimeout(function () {
+                button.innerHTML = '<i class="fas fa-copy"></i>';
+                button.classList.replace('btn-success', 'btn-outline-secondary');
+                button.title = 'کپی UUID اپ';
+            }, 1500);
+        } catch (error) {
+            button.title = 'کپی ناموفق بود';
+        }
+    });
+</script>
 <?php if ($current_view === 'analytics'): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     // --- CHART.JS LOGIC (MODIFIED FOR BOOTSTRAP) ---
+    const dashboardCharts = [];
+
+    function chartTextColor() {
+        return getComputedStyle(document.documentElement).getPropertyValue('--bs-body-color').trim() || '#212529';
+    }
+
+    function updateChartTheme() {
+        const color = chartTextColor();
+        dashboardCharts.forEach((chart) => {
+            chart.options.color = color;
+            chart.options.plugins.legend.labels.color = color;
+            chart.update();
+        });
+    }
+
     function generateColors(num) {
         const palette = [
             '#ef476f', '#06d6a0', '#81c3d7', '#ffd166',
@@ -341,7 +529,7 @@ elseif ($current_view === 'analytics') {
             return;
         }
 
-        new Chart(ctx, {
+        const chart = new Chart(ctx, {
             type: 'pie',
             data: {
                 labels: chartData.labels,
@@ -353,10 +541,17 @@ elseif ($current_view === 'analytics') {
                 }]
             },
             options: {
+                color: chartTextColor(),
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'top', labels: { font: { family: "'Vazirmatn', sans-serif" } } },
+                    legend: {
+                        position: 'top',
+                        labels: {
+                            color: chartTextColor(),
+                            font: { family: "'Vazirmatn', sans-serif" }
+                        }
+                    },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
@@ -374,7 +569,10 @@ elseif ($current_view === 'analytics') {
                 }
             }
         });
+        dashboardCharts.push(chart);
     }
+
+    window.addEventListener('logstream-theme-change', updateChartTheme);
 
     // Init charts
     createPieChart('osChart', {
