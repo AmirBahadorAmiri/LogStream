@@ -41,9 +41,23 @@ if (isset($_GET['edit'])) {
             $stmt = $pdo->prepare("UPDATE apps SET app_name = ? WHERE id = ?");
             $stmt->execute([$new_name, $app_id]);
             $success = t('updated_successfully');
-            $app['app_name'] = $new_name; // Update the name for display
+            $app['app_name'] = $new_name;
         } else {
             $error = t('name_required');
+        }
+    }
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regenerate_token'])) {
+        $confirm = trim($_POST['confirm_token'] ?? '');
+        $lang = language();
+        $required_confirm = $lang === 'fa' ? 'تغییر توکن' : 'confirm';
+        if ($confirm !== $required_confirm) {
+            $error = t('confirm_invalid');
+        } else {
+            $new_token = bin2hex(random_bytes(32));
+            $stmt = $pdo->prepare("UPDATE apps SET app_token = ? WHERE id = ?");
+            $stmt->execute([$new_token, $app_id]);
+            $success = t('app_token_regenerated');
+            $app['app_token'] = $new_token;
         }
     }
     ?>
@@ -79,10 +93,10 @@ if (isset($_GET['edit'])) {
         </div>
     </nav>
 
-    <main class="container" style="padding-top: 80px;">
+<main class="container" style="padding-top: 80px;">
         <div class="row justify-content-center">
             <div class="col-lg-6">
-                <div class="card shadow-sm">
+                <div class="card shadow-sm mb-4">
                     <div class="card-header">
                         <h5 class="mb-0"><i class="fas fa-edit"></i> <?= t('edit_app') ?>: <?= escape($app['app_name']) ?></h5>
                     </div>
@@ -106,9 +120,32 @@ if (isset($_GET['edit'])) {
                         </form>
                     </div>
                 </div>
+
+                <!-- Regenerate App Token -->
+                <div class="card shadow-sm">
+                    <div class="card-header"><h5 class="mb-0"><i class="fas fa-key"></i> <?= t('change_token') ?></h5></div>
+                    <div class="card-body">
+                        <form method="post">
+                            <div class="mb-3">
+                                <label class="form-label"><?= t('app_token') ?></label>
+                                <code class="form-control text-monospace d-block mb-2"><?= escape($app['app_token']) ?></code>
+                                <div class="alert alert-warning">
+                                    <small><?= t('confirm_token_change_desc') ?></small>
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <input type="text" class="form-control" name="confirm_token" placeholder="<?= t('confirm_token_placeholder') ?>" required>
+                                    <button type="submit" name="regenerate_token" class="btn btn-warning" style="white-space: nowrap;" onclick="return confirm('<?= t('confirm_token_action') ?>')">
+                                        <i class="fas fa-sync-alt"></i> <?= t('regenerate_app_token') ?>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
+</main>
 
     <script src="js/bootstrap.bundle.min.js"></script>
     </body>

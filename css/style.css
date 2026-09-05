@@ -10,6 +10,12 @@ body {
     font-size: 0.875rem;
 }
 
+.tag-badge {
+    display: inline-block;
+    width: 80px;
+    text-align: center;
+}
+
 .text-monospace {
     font-family: "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
 }

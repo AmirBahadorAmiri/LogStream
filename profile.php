@@ -13,12 +13,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $pdo->prepare("UPDATE users SET username = ? WHERE id = ?");
                 $stmt->execute([$new_username, $_SESSION['user_id']]);
                 $_SESSION['username'] = $new_username;
-                $success = 'نام کاربری با موفقیت به‌روز شد.';
+                $success = t('username_updated');
             } catch (PDOException $e) {
-                if ($e->errorInfo[1] == 1062) { $error = 'این نام کاربری قبلاً انتخاب شده است.'; } 
-                else { $error = 'خطا در به‌روزرسانی نام کاربری.'; }
+                if ($e->errorInfo[1] == 1062) { $error = t('username_taken'); } 
+                else { $error = t('username_error'); }
             }
-        } else { $error = 'نام کاربری باید حداقل ۳ کاراکتر باشد.'; }
+        } else { $error = t('username_min'); }
     }
 
     if (isset($_POST['update_password'])) {
@@ -30,14 +30,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$_SESSION['user_id']]);
         $row = $stmt->fetch();
 
-        if (!$row || !password_verify($old, $row['password'])) { $error = 'رمز عبور فعلی شما صحیح نیست.'; } 
-        elseif (strlen($new) < 6) { $error = 'رمز عبور جدید باید حداقل ۶ کاراکتر باشد.'; } 
-        elseif ($new !== $confirm) { $error = 'تکرار رمز عبور جدید مطابقت ندارد.'; } 
+        if (!$row || !password_verify($old, $row['password'])) { $error = t('wrong_password'); } 
+        elseif (strlen($new) < 6) { $error = t('password_min'); } 
+        elseif ($new !== $confirm) { $error = t('password_mismatch'); } 
         else {
             $hashed = password_hash($new, PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("UPDATE users SET password = ? WHERE id = ?");
             $stmt->execute([$hashed, $_SESSION['user_id']]);
-            $success = 'رمز عبور با موفقیت تغییر یافت.';
+            $success = t('password_updated');
         }
     }
 
@@ -47,12 +47,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $stmt = $pdo->prepare("UPDATE users SET email = ? WHERE id = ?");
                 $stmt->execute([$new_email, $_SESSION['user_id']]);
-                $success = 'ایمیل با موفقیت به‌روز شد.';
+                $success = t('email_updated');
             } catch (PDOException $e) {
-                if ($e->errorInfo[1] == 1062) { $error = 'این ایمیل قبلاً توسط کاربر دیگری ثبت شده است.'; } 
-                else { $error = 'خطا در به‌روزرسانی ایمیل.'; }
+                if ($e->errorInfo[1] == 1062) { $error = t('email_taken'); } 
+                else { $error = t('email_error'); }
             }
-        } else { $error = 'فرمت ایمیل وارد شده نامعتبر است.'; }
+        } else { $error = t('email_invalid'); }
+    }
+    if (isset($_POST['update_token'])) {
+        $confirm = trim($_POST['confirm_token'] ?? '');
+        $lang = language();
+        $required_confirm = $lang === 'fa' ? 'تغییر توکن' : 'confirm';
+        if ($confirm !== $required_confirm) {
+            $error = t('confirm_invalid');
+        } else {
+            $new_token = bin2hex(random_bytes(32));
+            $stmt = $pdo->prepare("UPDATE users SET user_token = ? WHERE id = ?");
+            $stmt->execute([$new_token, $_SESSION['user_id']]);
+            $success = t('token_change_success');
+        }
     }
     // Refresh user data after updates
     $user = currentUser($pdo);
@@ -143,8 +156,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <!-- Update Password -->
-    <div class="row justify-content-center">
-        <div class="col-lg-8 mb-4">
+    <div class="row">
+        <div class="col-12 mb-4">
             <div class="card shadow-sm">
                 <div class="card-header"><h5 class="mb-0"><i class="fas fa-key"></i> <?= t('change_password') ?></h5></div>
                 <div class="card-body">
@@ -155,13 +168,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <div class="mb-3">
                             <label for="new_password" class="form-label"><?= t('new_password') ?></label>
-                            <input type="password" class="form-control" id="new_password" name="new_password" placeholder="<?= language() === 'fa' ? 'حداقل ۶ کاراکتر' : 'At least 6 characters' ?>" required>
+                            <input type="password" class="form-control" id="new_password" name="new_password" placeholder="<?= t('password_min_hint') ?>" required>
                         </div>
                         <div class="mb-3">
                             <label for="confirm_password" class="form-label"><?= t('confirm_password') ?></label>
                             <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
                         </div>
                         <button type="submit" name="update_password" class="btn btn-warning"><i class="fas fa-sync-alt"></i> <?= t('change_password') ?></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Update Token -->
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-header"><h5 class="mb-0"><i class="fas fa-key"></i> <?= t('change_token') ?></h5></div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label class="form-label"><?= t('my_token') ?></label>
+                            <code class="form-control text-monospace d-block mb-2"><?= escape($user['user_token'] ?? '') ?></code>
+                            <div class="alert alert-warning">
+                                <small><?= t('confirm_token_change_desc') ?></small>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="text" class="form-control" name="confirm_token" placeholder="<?= t('confirm_token_placeholder') ?>" required>
+                                <button type="submit" name="update_token" class="btn btn-warning" style="white-space: nowrap;" onclick="return confirm('<?= t('confirm_token_action') ?>')">
+                                    <i class="fas fa-sync-alt"></i> <?= t('generate_new_token') ?>
+                                </button>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>

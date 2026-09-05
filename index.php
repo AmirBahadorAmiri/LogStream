@@ -27,8 +27,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
     } else {
         try {
             $hashed = password_hash($password, PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO users (username, password, email) VALUES (?, ?, ?)");
-            $stmt->execute([$username, $hashed, $email]);
+            $user_token = bin2hex(random_bytes(32));
+            $stmt = $pdo->prepare("INSERT INTO users (username, password, email, user_token) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$username, $hashed, $email, $user_token]);
             $success = t('registration_success');
             $active_tab = 'login'; // Switch to login tab on success
         } catch (PDOException $e) {
@@ -186,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['login'])) {
                         </div>
                         <div class="form-floating mb-3">
                             <input type="password" class="form-control" id="register_password" name="password" placeholder="<?= t('password') ?>" required>
-                            <label for="register_password"><?= t('password') ?> (<?= language() === 'fa' ? 'حداقل ۶ کاراکتر' : 'at least 6 characters' ?>)</label>
+                            <label for="register_password"><?= t('password') ?> (<?= t('password_min_hint') ?>)</label>
                         </div>
                         <div class="form-floating mb-3">
                             <input type="email" class="form-control" id="register_email" name="email" placeholder="<?= t('email_optional') ?>">
